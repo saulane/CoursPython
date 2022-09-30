@@ -1,0 +1,18 @@
+animal
+    mammifères
+        dauphin
+        chat
+        poisson-crapaud
+        ours
+        souris
+    oiseaux
+        gallinacées
+        épervier
+        pintades
+        exocoetidae
+        poules
+        autruche
+        rossignol
+        chauve-souris
+    poissons
+        saumon
