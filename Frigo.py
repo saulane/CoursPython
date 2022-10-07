@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-from typing import Counter, List
-from collections import Counter
+from copy import copy
 
 class Frigo():
     def __init__(self) -> None:
-        self.contenu = Counter()
+        self.contenu = {}
 
     def etat(self):
         print("contenu:")
@@ -14,70 +13,105 @@ class Frigo():
         print("    .")
 
     def depose(self, content):
-        self.contenu = self.contenu + Counter(content)
-
-    def __repr__(self) -> str:
-        return f"{self.sign * self.num}/{self.den}"
+        for key in content:
+            if key in self.contenu:
+                self.contenu[key] += content[key]
+            else:
+                self.contenu[key] = content[key]
 
     def extraire_recette(self, recette):
-        self.contenu = self.contenu - recette.ingredients
+        for key in recette.ingredients:
+            self.contenu[key] -= recette.ingredient[key]
     
     def extraire_ingredients(self, ingredients):
-        self.contenu -= ingredients
-
-    def inverse(self):
-        self.num, self.den = self.den, self.num
-
+        for key in ingredients:
+            self.contenu[key] -= ingredients[key]
 
 class Recette():
     def __init__(self, ingredients) -> None:
-        self.ingredients = Counter(ingredients)
+        self.ingredients = ingredients
 
-    def possible(self, frigos):
-        combined = Counter()
-        for frigo in frigos:
-            combined += frigo.contenu
-
-        if combined< self.ingredients:
-            return False
+    def possible(self, frigo):
+        for ingre in self.ingredients:
+            if ingre not in frigo.contenu or frigo.contenu[ingre] < self.ingredients[ingre]:
+                return False
         return True
 
+    def extraire_multiple(self, frigo):
+        if self.possible(frigo):
+            for ingre in self.ingredients:
+                frigo.contenu[ingre] -= self.ingredients[ingre]
+
+
+class RecetteMultiple():
+    def __init__(self, ingredients) -> None:
+        self.ingredients = ingredients
+
+    def possible(self, frigos):
+        combined = self.combine(frigos)
+
+        for ingre in self.ingredients:
+            if ingre not in combined or combined[ingre] < self.ingredients[ingre]:
+                return False
+        return True
+
+    def combine(self, frigos):
+        combined = {}
+        for frigo in frigos:
+            for ingr in frigo.contenu:
+                if ingr in combined:
+                    combined[ingr] += frigo.contenu[ingr]
+                else:
+                    combined[ingr] = frigo.contenu[ingr]
+        return combined
+
     def extraire_multiple(self, frigos):
-        ingredients_restant = self.ingredients
+        restant = copy(self.ingredients)
         if self.possible(frigos):
             for frigo in frigos:
-                print(ingredients_restant)
-                ingredients_restant -= frigo.contenu
-                frigo.extraire_ingredients(ingredients_restant)
+                to_del = []
+                for ingre in restant:
+                    if ingre in frigo.contenu:
+                        reste = frigo.contenu[ingre] - restant[ingre]
+                        # print(ingre, combined[ingre])
+                        if frigo.contenu[ingre] <= restant[ingre]:
+                            restant[ingre] -= frigo.contenu[ingre]
+                            del frigo.contenu[ingre]
+                        else:
+                            frigo.contenu[ingre] -= restant[ingre]
+                            to_del.append(ingre)
 
-    
-            
+                for ing in to_del:
+                    del restant[ing]
+
 
 if __name__ == "__main__":
     un_frigo = Frigo()
     un_frigo.depose({
-            "oeufs": 6
-            , "beurre": 250
+            "oeufs": 18
+            , "beurre": 500
             , "yaourt": 6
             , "fraise": 10
             })
-    un_frigo.etat()
+    #un_frigo.etat()
     un_frigo2 = Frigo()
     un_frigo2.depose({
-            "oeufs": 12
+            "oeufs": 15
             , "beurre": 250
             , "yaourt": 6
             , "prunes": 4
             })
-    un_frigo2.etat()
+    #un_frigo2.etat()
 
-    tarte_aux_fraises = Recette({
-        "oeufs": 17
+    tarte_aux_fraises = RecetteMultiple({
+        "oeufs": 18
         , "beurre": 400
         , "fraise": 10
     })
+
+    #print(tarte_aux_fraises.possible(un_frigo))
     
-    print(tarte_aux_fraises.possible([un_frigo, un_frigo2])) # booléen indiquant si les ingrédients de la recette sont dispo
+    print(tarte_aux_fraises.possible([un_frigo,un_frigo2])) # booléen indiquant si les ingrédients de la recette sont dispo
     tarte_aux_fraises.extraire_multiple([un_frigo, un_frigo2])
     un_frigo.etat()
     un_frigo2.etat()
