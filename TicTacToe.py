@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from xml.dom import NoModificationAllowedErr
 import numpy as np
 
 class TicTacToe():
@@ -32,7 +31,7 @@ class TicTacToe():
             if win:
                 return first
 
-       #On vérifie chaque ligne
+       #On vérifie chaque colonne
         for i in range(3):
             first = ""
             win = True
@@ -50,6 +49,7 @@ class TicTacToe():
                 return first
         
 
+        #On vérifie les deux diagonales
         if self.grille[0][0] == self.grille[1][1] and self.grille[0][0] == self.grille[2][2]:
             return self.grille[0][0]
 
