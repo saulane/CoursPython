@@ -18,14 +18,16 @@ class IPV4():
             self.classe = "B"
             self.adresse = ".".join(splitted[2:])
             self.reseau = ".".join(splitted[:2])
-        else:
+        elif first[0] == "1":
             self.classe = "C"
             self.adresse = splitted[-1]
             self.reseau = ".".join(splitted[:3])
+        else:
+            raise Exception("Ip non valide")
 
     def __repr__(self) -> str:
         return f"{self.ip} : Classe={self.classe}, Réseau={self.reseau}, Adresse d'équipement={self.adresse}"
 
 if __name__ == "__main__":
-    ip = IPV4("171.19.45.1")
+    ip = IPV4("10.0.0.1")
     print(ip)

@@ -3,6 +3,7 @@
 import time
 import random
 
+
 class Torche():
     def __init__(self) -> None:
         self.state = 0
