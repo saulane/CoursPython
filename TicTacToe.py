@@ -1,13 +1,10 @@
 #!/usr/bin/python
 
-from asyncio import streams
-import numpy as np
-
 class TicTacToe():
     def __init__(self) -> None:
         self.grille = [[".",".", "."],[".",".", "."],[".",".", "."]]
 
-    def place(self, row ,col,c):
+    def place(self, row, col,c) -> None:
         if row <=3 and col <=3 and self.grille[row-1][col-1] == ".":
             self.grille[row-1][col-1] = c
         else:
@@ -47,14 +44,15 @@ class TicTacToe():
             
             if win:
                 return first.nom
-        
-
+            
         #On vérifie les deux diagonales
         if self.grille[0][0] == self.grille[1][1] and self.grille[0][0] == self.grille[2][2]:
             return self.grille[0][0].nom
 
         if self.grille[2][0] == self.grille[1][1] and self.grille[2][0] == self.grille[0][2]:
             return self.grille[2][0].nom
+
+        return f"Pas encore de vainqueur"
 
     def is_grille_pleine(self):
         for i in range(3):
@@ -64,6 +62,7 @@ class TicTacToe():
         return True
 
     def __str__(self) -> str:
+        #On transforme les instance de joueur dans les cases en string pour pouvoir les afficher
         l1 = " ".join(list(map(str, self.grille[0])))
         l2 = " ".join(list(map(str, self.grille[1])))
         l3 = " ".join(list(map(str, self.grille[2])))
@@ -78,6 +77,7 @@ class Joueur():
         self.pion = pion
 
     def joue(self, row, col):
+        #On place l'instance du joueur dans la case choisi 
         self.jeu.place(row,col,self)
 
     def __str__(self):
@@ -92,6 +92,7 @@ if __name__ == "__main__":
     bob.joue(3,1)
     alice.joue(1,2)
     bob.joue(2,2)
+    print(jeu.vainqueur())
     alice.joue(1,1)
     bob.joue(1,3)
     print(jeu)
