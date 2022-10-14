@@ -12,6 +12,9 @@ class Complex():
     def argument(self):
         return math.atan(self.y/self.x)
 
+    def __add__(self, z):
+        return Complex(self.x + z.x, self.y + z.y)
+
     def __str__(self) -> str:
         if not self.x and not self.y:
             return f"0"
