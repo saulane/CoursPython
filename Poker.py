@@ -2,6 +2,10 @@
 from random import randrange, shuffle
 import copy
 
+class CouleurError(ValueError): pass
+class ValeurError(ValueError): pass
+class ZeroCartesError(ValueError): pass
+
 class Carte():
     valeurs = list(range(7, 11)) + ['Valet', 'Dame', 'Roi', 'As']
     couleurs = ['Coeur', 'Carreau', 'Pique', 'Trèfle']
@@ -9,13 +13,13 @@ class Carte():
     def __init__(self, v=None, c=None):
         if v:
             if not v in Carte.valeurs:
-                raise ValueError(f"{v}: valeur incorrecte")
+                raise ValeurError(f"{v}: valeur incorrecte")
         else:
             v = Carte.valeurs[randrange(0, len(Carte.valeurs))]
 
         if c:
             if not c in Carte.couleurs:
-                raise ValueError(f"{c}: couleur incorrecte")
+                raise CouleurError(f"{c}: couleur incorrecte")
         else:
             c = Carte.couleurs[randrange(0, len(Carte.couleurs))]
 
@@ -34,7 +38,6 @@ class Carte():
             return carte.valeur == self.valeur and carte.couleur == self.couleur
 
 
-
 class Cartes():
     def __init__(self, cartes=None) -> None:
         if not cartes:
@@ -49,7 +52,7 @@ class Cartes():
         try:
             return self.cartes.pop()
         except:
-            raise ValueError("pioche vide!")
+            raise ZeroCartesError("pioche vide!")
 
     def melange(self):
         shuffle(self.cartes)
@@ -81,7 +84,6 @@ class Cartes():
             return self
 
 
-
 class Jeu(Cartes):
     def __init__(self) -> None:
         Cartes.__init__(self)
@@ -94,7 +96,6 @@ class Jeu(Cartes):
         return str(self.cartes)
 
 
-
 class Main(Cartes):
     def __init__(self, jeu):
         Cartes.__init__(self)
@@ -104,11 +105,10 @@ class Main(Cartes):
         if len(self.jeu) > 0:
             self.ajoute(self.jeu.pioche())
         else:
-            raise ValueError("plus de carte pour compléter la main")
+            raise ZeroCartesError("plus de carte pour compléter la main")
 
     def __repr__(self):
         return str(self.cartes)
-
 
 
 class Carre(Cartes):
@@ -163,9 +163,11 @@ class Quinte(Cartes):
 
 
 if __name__ == "__main__":
-    un_jeu = Jeu()
-    print(f"{un_jeu=}")
-    un_jeu -= Carte('Valet','Coeur')
-    un_jeu -= Carte('As','Pique')
-    un_jeu -= Carte(10,'Trèfle')
-    print(f"{un_jeu=}")
+    print(Carte())                      # -> Valet de Trèfle (par exemple)
+    print(Carte())                      # -> Dame de Coeur (par exemple)
+    print(Carte())                      # -> 8 de Carreau (par exemple)
+    carte1 = Carte(7,"Coeur")
+    print(carte1)                       # -> 7 de Coeur
+    carte2 = Carte("Valet","pic")       # -> ValueError: pic: couleur incorrecte
+    carte3 = Carte("Valet","Pique")
+    print(carte3)       
