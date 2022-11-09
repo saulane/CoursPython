@@ -54,7 +54,7 @@ class Cartes():
         except:
             raise ZeroCartesError("pioche vide!")
 
-    def melange(self):
+    def melanger(self):
         shuffle(self.cartes)
 
     def trier(self, categorie="couleur"):
@@ -69,11 +69,13 @@ class Cartes():
         return len(self.cartes)
 
     def __repr__(self):
-        return ", ".join([str(c) for c in self.cartes])
+        return ", ".join([repr(c) for c in self.cartes])
 
     def __contains__(self, carte):
         if isinstance(carte, Carte):
             return carte in self.cartes
+        else:
+            raise ValueError(f"Un paquet de carte ne peut contenir que des cartes et pas de {type(carte)}")
 
     def __isub__(self, carte):
         if isinstance(carte, Carte):
@@ -92,9 +94,6 @@ class Jeu(Cartes):
             for c in Carte.couleurs:
                 self.ajoute(Carte(v,c))
 
-    def __repr__(self):
-        return str(self.cartes)
-
 
 class Main(Cartes):
     def __init__(self, jeu):
@@ -106,9 +105,6 @@ class Main(Cartes):
             self.ajoute(self.jeu.pioche())
         else:
             raise ZeroCartesError("plus de carte pour compléter la main")
-
-    def __repr__(self):
-        return str(self.cartes)
 
 
 class Carre(Cartes):
@@ -163,11 +159,34 @@ class Quinte(Cartes):
 
 
 if __name__ == "__main__":
-    print(Carte())                      # -> Valet de Trèfle (par exemple)
-    print(Carte())                      # -> Dame de Coeur (par exemple)
-    print(Carte())                      # -> 8 de Carreau (par exemple)
-    carte1 = Carte(7,"Coeur")
-    print(carte1)                       # -> 7 de Coeur
-    carte2 = Carte("Valet","pic")       # -> ValueError: pic: couleur incorrecte
-    carte3 = Carte("Valet","Pique")
-    print(carte3)       
+    le_jeu = Jeu()
+
+    # on crée 2 mains vides
+    ma_main = Main(le_jeu)
+    ta_main = Main(le_jeu)
+    print(f"{ma_main=}")
+    print(f"{ta_main=}")
+
+    # on y ajoute 3 cartes
+    for i in range(3):
+        ma_main.complete()
+        ta_main.complete()
+    print(f"{ma_main=}")
+    print(f"{ta_main=}")
+    print(f"{le_jeu=}")
+
+    # on tente d'ajouter 25 cartes à la première
+    try:
+        for i in range(25):
+            ma_main.complete()
+    except ZeroCartesError as e:
+        print(e)
+
+    # on tente dajouter 25 cartes à la seconde
+    try:
+        for i in range(25):
+            ta_main.complete()
+    except ZeroCartesError as e:
+        print(e)
+
+    print("fin de programme")
