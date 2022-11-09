@@ -1,57 +1,82 @@
-#!/usr/bin/python
-
 import os
 import sys
 from PyPDF2 import PdfFileReader
 import epub
 import glob
+from pathlib import Path
+import concurrent.futures
+import configparser
+
+
+config = configparser.RawConfigParser().read("bibli.conf")
+
+
+def combiner_paths(path, extensions):
+    fichiers = []
+    for e in extensions:
+        fichiers.extend(Path(path).glob(e))
+    return fichiers
 
 
 class Bibliotheque():
     def __init__(self, path) -> None:
-        livres = glob.glob(f"{path}*")
+        # paths_epub = Path(path).glob("*.epub")
+        # paths_pdf = Path(path).glob("*.pdf")
 
-        # livres_obj_pdf = [Livre(l) for l in livres if l.endswith(".pdf")]
-        # for i in livres_obj_pdf:
-        #     i._open_pdf()
+        paths = combiner_paths(path, ("*.pdf", "*.epub"))
+        self.livres = set()
 
-        # print(livres_obj_pdf)
+        with concurrent.futures.ThreadPoolExecutor(12) as executor:
+            result = executor.map(Livre, paths)
+            for livre in result:
+                if livre not in self.livres:
+                    self.livres.add(livre)
+                else:
+                    livre.force_del()
 
-        livres_obj = [Livre(l) for l in livres]
-        # for i in livres_obj_epub:
-        #     i._open_epub()
-        print(livres_obj)
-
+        self.auteurs = set(map(lambda x: getattr(x, "auteur"), self.livres))
+        print(self.auteurs)
 
 class Livre():
-    def __init__(self, file_name) -> None:
-        self.file_name = file_name
-
-        if file_name.endswith(".pdf"):
-            self.auteur, self.titre = self._open_pdf()
-        elif file_name.endswith(".epub"):
-            self._open_epub()
-
+    def __init__(self, path) -> None:
+        self.path = path
+        self.file_name = path.name
         self.auteur = None
         self.titre = None
+
+        if path.suffix == ".pdf":
+            self._open_pdf()
+        elif path.suffix == ".epub":
+            self._open_epub()
 
     def __repr__(self) -> str:
         return f"{self.titre} par {self.auteur}"
 
     def _open_pdf(self):
-        with open(f'{self.file_name}', 'rb') as f:
-            pdf = PdfFileReader(f)
-            information = pdf.getDocumentInfo()
-            number_of_pages = pdf.getNumPages()
-
-        return information.author, information.title
+        with self.path.open(mode='rb') as f:
+            pdf = PdfFileReader(f,strict=False)
+            information = pdf.metadata
+            self.auteur = information.author
+            self.titre = information.title
 
     def _open_epub(self):
-        with epub.open_epub(f'{self.file_name}') as book:
+        with epub.open_epub(f'{self.path}') as book:
             metadata = book.opf.metadata
             auteur = metadata.creators[0][0]
             titre = metadata.titles[0][0]
-            return auteur, titre
+            self.auteur = auteur
+            self.titre = titre
+
+    def force_del(self):
+        self.path.unlink()
+        del self
+
+    def __hash__(self) -> int:
+        return hash((self.auteur, self.titre))
+
+    def __eq__(self, __o: object) -> bool:
+        return (self.auteur == __o.auteur and self.titre == __o.titre)
+
 
 
 if __name__ == "__main__":
