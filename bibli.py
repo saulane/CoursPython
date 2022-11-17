@@ -6,7 +6,8 @@ import glob
 from pathlib import Path
 import concurrent.futures
 import configparser
-
+import time
+from multiprocessing import Pool as ProcessPool
 
 config = configparser.RawConfigParser().read("bibli.conf")
 
@@ -24,18 +25,21 @@ class Bibliotheque():
         # paths_pdf = Path(path).glob("*.pdf")
 
         paths = combiner_paths(path, ("*.pdf", "*.epub"))
-        self.livres = set()
+        print("path recupere")
+        start = time.time()
 
-        with concurrent.futures.ThreadPoolExecutor(12) as executor:
+        res = list(map(Livre, paths))
+        self.livres = set(res)
+        with ProcessPool(processes=10) as executor:
             result = executor.map(Livre, paths)
             for livre in result:
                 if livre not in self.livres:
                     self.livres.add(livre)
-                else:
-                    livre.force_del()
+                # else:
+                    # livre.force_del()
 
         self.auteurs = set(map(lambda x: getattr(x, "auteur"), self.livres))
-        print(self.auteurs)
+        print("finito en", time.time()-start, "secondes")
 
 class Livre():
     def __init__(self, path) -> None:
